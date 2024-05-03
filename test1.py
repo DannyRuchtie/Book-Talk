@@ -43,20 +43,17 @@ llm = ChatOllama(model=local_llm)
 answer_generator = prompt_template | llm | StrOutputParser()
 
 # Interaction with user in the terminal
-while True:
-    question = input("Enter your question (or 'exit' to quit): ")
-    if question.lower() == 'exit':
-        break
+question = input("Enter your question: ")
+retrieved_docs = retriever.invoke(question)
 
-    retrieved_docs = retriever.invoke(question)
+if retrieved_docs:
+    # Retrieve the first relevant document
+    context = retrieved_docs[0].page_content
+    print(f"Retrieved document content: {context[:500]}...")  # Show a snippet of the document
 
-    if retrieved_docs:
-        # Retrieve the first relevant document
-        context = retrieved_docs[0].page_content
-        print(f"Retrieved document content: {context[:500]}...")  # Show a snippet of the document
+    # Generate an answer based on the retrieved document
+    answer = answer_generator.invoke({"context": context, "question": question})
+    print(f"Answer: {answer}")
+else:
+    print("No relevant documents were found for your question.")
 
-        # Generate an answer based on the retrieved document
-        answer = answer_generator.invoke({"context": context, "question": question})
-        print(f"Answer: {answer}")
-    else:
-        print("No relevant documents were found for your question.")
