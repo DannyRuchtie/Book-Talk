@@ -1,0 +1,10 @@
+langchain-nomic==0.0.2
+langchain_community==0.0.34
+tiktoken==0.6.0
+langchainhub==0.1.15
+chromadb==0.5.0
+langchain==0.1.16
+langgraph==0.0.39
+tavily-python==0.3.3
+gpt4all
+
