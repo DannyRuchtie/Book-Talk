@@ -1,0 +1,98 @@
+html, body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+}
+
+body {
+    transition: opacity 0.5s ease;
+}
+
+body[fade-out] {
+    opacity: 0;
+}
+
+a {
+    text-decoration: none;
+}
+
+.container {
+    width: 90vw;
+}
+
+h1 {
+    color: #000;
+    font-family: "New York Extra Large", -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 2rem;
+    font-weight: 600;
+    letter-spacing: -0.35px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin: 1rem auto;
+    align-items: end;
+}
+
+.container .book img {
+    width: 100%;
+    height: auto;
+    border-radius: .25rem;
+    object-fit: cover;
+    aspect-ratio: 3/4.2;
+    background-color: #eeeeee;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.12), 0px 4px 16px rgba(0, 0, 0, 0.25);
+    contain: paint;
+}
+
+.book h2 {
+    color: #848488;
+    font-size: 13px;
+    font-weight: 400;
+    margin: .5rem 0;
+}
+
+.detail {
+    display: grid;
+    justify-content: center;
+    gap: 8rem;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+}
+
+.detail .cover {
+    background-color: #eeeeee;
+    border-radius: 4px;
+    overflow: hidden;
+    object-fit: cover;
+    aspect-ratio: 3/4.2;
+    width: 400px;
+    box-shadow: 0px 16px 48px rgba(0, 0, 0, 0.12), 0px 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.detail .cover img {
+    width: 100%;
+    height: auto;
+}
+
+.detail .chat {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    width: 100%;
+    height: 100%;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 0.5s;
+}
+
