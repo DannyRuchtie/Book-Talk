@@ -1,25 +1,41 @@
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import WebBaseLoader
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import GPT4AllEmbeddings
 from langchain_community.chat_models import ChatOllama
 from langchain.prompts import PromptTemplate
-from langchain import hub
 from langchain_core.output_parsers import StrOutputParser
+from langchain.schema import Document
+from ebooklib import epub
+from bs4 import BeautifulSoup
+import os
+import warnings
+
+# Suppress specific warnings for now
+warnings.filterwarnings("ignore", category=UserWarning, module="ebooklib")
+warnings.filterwarnings("ignore", category=FutureWarning, module="ebooklib")
 
 # Configuration
 local_llm = 'llama3'
 
-# Load documents from URLs
-urls = [
-    "https://developer.apple.com/design/human-interface-guidelines/designing-for-visionos",
-    "https://developer.apple.com/design/human-interface-guidelines/designing-for-ios",
-    "https://developer.apple.com/design/human-interface-guidelines/designing-for-ipados",
-]
+# Function to read and extract text from an EPUB file
+def read_epub(file_path):
+    book = epub.read_epub(file_path)
+    content = []
+    for item in book.get_items():
+        if item.get_type() == 9:  # 9 corresponds to ebooklib.ITEM_DOCUMENT
+            soup = BeautifulSoup(item.get_body_content(), 'html.parser')
+            content.append(soup.get_text())
+    return content
 
-print("Loading and indexing documents...")
-docs = [WebBaseLoader(url).load() for url in urls]
-docs_list = [item for sublist in docs for item in sublist]
+# Path to the EPUB file
+epub_file_path = 'books/book.epub'
+if not os.path.exists(epub_file_path):
+    print("EPUB file not found.")
+    exit(1)
+
+print("Loading and indexing documents from EPUB...")
+epub_content = read_epub(epub_file_path)
+docs_list = [Document(page_content=content) for content in epub_content]
 
 # Split text into manageable parts
 text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(chunk_size=250, chunk_overlap=0)
