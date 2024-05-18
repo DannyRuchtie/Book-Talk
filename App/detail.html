@@ -1,28 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="view-transition" content="same-origin" />
+
     <title>Title</title>
-    <link rel="stylesheet" href="css/screen.css">
-    <script src="js/script.js" defer></script>
-</head>
-<body>
+    <link rel="stylesheet" href="css/screen.css" />
+  </head>
+  <body>
     <div class="container detail">
-        <div class="cover">
-            <a href="master.html" class="navigate-link">
-                <img src="assets/1.jpg" alt="title" view-transition-name="book-image">
-            </a>
-        </div>
-      
-        <div class="chat">
-            <div class="chat-bubble">
-                Hello, how are you?
-            </div>
-            <div class="chat-bubble">
-                I'm doing well, thank you for asking.
-            </div>
-        </div>
+      <div class="cover">
+        <a href="master.html" class="navigate-link">
+          <img
+            src="assets/1.jpg"
+            alt="title"
+            class="cover cover-transition-small"
+            view-transition-name="book-image"
+          />
+        </a>
+      </div>
+
+      <div class="chat">
+        <div class="chat-bubble">Hello, how are you?</div>
+        <div class="chat-bubble">I'm doing well, thank you for asking.</div>
+      </div>
     </div>
-</body>
+  </body>
 </html>
