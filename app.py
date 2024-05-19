@@ -189,7 +189,7 @@ retriever = vectorstore.as_retriever()
 
 # Setup LangChain prompt for answer generation
 prompt_template = PromptTemplate(
-    template="Given the context: {context}, answer the question: {question}",
+    template="Using only the provided context: {context}, answer the following question: {question}",
     input_variables=["context", "question"],
 )
 
