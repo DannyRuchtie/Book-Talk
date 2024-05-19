@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="view-transition" content="same-origin" />
+
+    <title>Books*</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/screen.css') }}"
+    />
+    <script
+      src="{{ url_for('static', filename='js/script.js') }}"
+      defer
+    ></script>
+  </head>
+  <body>
+    <div class="container master">
+      <h1>All Books</h1>
+      <div class="grid">
+        {% for book in books %}
+        <div class="book">
+          <a href="detail.html" class="navigate-link">
+            <img
+              src="data:image/jpeg;base64,{{ book.cover_image }}"
+              alt="Book"
+              view-transition-name="book-image"
+              class="cover cover-transition-large"
+            />
+            <h2 class="title">{{ book.title }}</h2>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </body>
+</html>
