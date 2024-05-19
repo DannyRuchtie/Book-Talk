@@ -6,9 +6,11 @@ from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain.schema import Document
 from ebooklib import epub
+from ebooklib.epub import EpubHtml
 from bs4 import BeautifulSoup
 import os
 import warnings
+import sqlite3
 
 # Suppress specific warnings for now
 warnings.filterwarnings("ignore", category=UserWarning, module="ebooklib")
@@ -17,15 +19,82 @@ warnings.filterwarnings("ignore", category=FutureWarning, module="ebooklib")
 # Configuration
 local_llm = 'llama3'
 
-# Function to read and extract text from an EPUB file
+# Enhanced read_epub function
 def read_epub(file_path):
     book = epub.read_epub(file_path)
+    title = None
+    cover_image = None
     content = []
+
+    # Extracting the title from metadata
+    title_metadata = book.get_metadata('DC', 'title')
+    if title_metadata:
+        title = title_metadata[0][0]
+    else:
+        title = "Unknown Title"
+
+    # Try extracting the cover image using metadata
+    cover_metadata = book.get_metadata('OPF', 'cover')
+    if cover_metadata:
+        cover_id = cover_metadata[0][1].get('content')
+        cover_item = book.get_item_with_id(cover_id)
+        if cover_item:
+            cover_image = cover_item.get_content()
+
+    # Fallback to checking if 'cover' is in the image name
+    if not cover_image:
+        for item in book.get_items_of_type(epub.ITEM_IMAGE):
+            if 'cover' in item.get_name().lower():
+                cover_image = item.get_content()
+
+    # Extract content from document items
     for item in book.get_items():
-        if item.get_type() == 9:  # 9 corresponds to ebooklib.ITEM_DOCUMENT
+        if isinstance(item, EpubHtml):
             soup = BeautifulSoup(item.get_body_content(), 'html.parser')
             content.append(soup.get_text())
-    return content
+
+    # Debugging prints
+    print(f"Title extracted: {title}")
+    print(f"Cover image extracted: {'Yes' if cover_image else 'No'}")
+    print(f"Number of documents extracted: {len(content)}")
+
+    return title, cover_image, content
+
+# Setup SQLite database
+def setup_database(db_path='books.db'):
+    conn = sqlite3.connect(db_path)
+    c = conn.cursor()
+    
+    c.execute('''
+    CREATE TABLE IF NOT EXISTS books (
+        id INTEGER PRIMARY KEY,
+        title TEXT,
+        cover_image BLOB
+    )
+    ''')
+    
+    c.execute('''
+    CREATE TABLE IF NOT EXISTS texts (
+        id INTEGER PRIMARY KEY,
+        book_id INTEGER,
+        content TEXT,
+        FOREIGN KEY (book_id) REFERENCES books (id)
+    )
+    ''')
+    
+    conn.commit()
+    return conn
+
+def insert_book(conn, title, cover_image):
+    c = conn.cursor()
+    c.execute('INSERT INTO books (title, cover_image) VALUES (?, ?)', (title, cover_image))
+    conn.commit()
+    return c.lastrowid
+
+def insert_texts(conn, book_id, texts):
+    c = conn.cursor()
+    c.executemany('INSERT INTO texts (book_id, content) VALUES (?, ?)', [(book_id, text) for text in texts])
+    conn.commit()
 
 # Path to the EPUB file
 epub_file_path = 'books/book.epub'
@@ -34,12 +103,23 @@ if not os.path.exists(epub_file_path):
     exit(1)
 
 print("Loading and indexing documents from EPUB...")
-epub_content = read_epub(epub_file_path)
+title, cover_image, epub_content = read_epub(epub_file_path)
+
+# Validate extracted data
+if title is None or cover_image is None or not epub_content:
+    print("Failed to extract title, cover image, or text content from EPUB.")
+    exit(1)
+
 docs_list = [Document(page_content=content) for content in epub_content]
 
 # Split text into manageable parts
 text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(chunk_size=250, chunk_overlap=0)
 doc_splits = text_splitter.split_documents(docs_list)
+
+# Setup and populate the database
+conn = setup_database()
+book_id = insert_book(conn, title, cover_image)
+insert_texts(conn, book_id, [doc.page_content for doc in doc_splits])
 
 # Index documents in a vector database
 vectorstore = Chroma.from_documents(

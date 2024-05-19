@@ -120,7 +120,7 @@ h1 {
   padding: 1rem 1.25rem;
   background-color: #f1f1f1;
   border-radius: 1.5rem;
-  margin: 0.5rem 0 0.5rem 4rem;
+  margin: 0.5rem 0 0.5rem 3rem;
 }
 
 .chat input {
@@ -134,14 +134,14 @@ h1 {
 .chat input:focus {
   outline: none;
 }
-
+/* 
 @media only screen and (max-width: 600px) {
   html,
   body {
     margin: 0;
   }
   .container.detail {
-    grid-template-columns: 1fr; /* Two columns: one for cover, two for chat */
+    grid-template-columns: 1fr; 
   }
 
   .detail .cover {
@@ -164,6 +164,7 @@ h1 {
       0px 88.6px 33.4px rgba(0, 0, 0, 0.05), 0px 212px 80px rgba(0, 0, 0, 0.07);
   }
 }
+*/
 
 /* Transistion */
 
