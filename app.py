@@ -1,3 +1,7 @@
+import os
+import warnings
+import sqlite3
+import pickle
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import GPT4AllEmbeddings
@@ -8,9 +12,6 @@ from langchain.schema import Document
 from ebooklib import epub
 from ebooklib.epub import EpubHtml
 from bs4 import BeautifulSoup
-import os
-import warnings
-import sqlite3
 
 # Suppress specific warnings for now
 warnings.filterwarnings("ignore", category=UserWarning, module="ebooklib")
@@ -18,6 +19,10 @@ warnings.filterwarnings("ignore", category=FutureWarning, module="ebooklib")
 
 # Configuration
 local_llm = 'llama3'
+vectorstore_dir = 'vectorstores'
+
+if not os.path.exists(vectorstore_dir):
+    os.makedirs(vectorstore_dir)
 
 # Enhanced read_epub function
 def read_epub(file_path):
@@ -96,6 +101,25 @@ def insert_texts(conn, book_id, texts):
     c.executemany('INSERT INTO texts (book_id, content) VALUES (?, ?)', [(book_id, text) for text in texts])
     conn.commit()
 
+def save_vectorstore(docs, embeddings, book_key):
+    data = {
+        'docs': docs,
+        'embeddings': embeddings
+    }
+    with open(os.path.join(vectorstore_dir, f'{book_key}.pkl'), 'wb') as file:
+        pickle.dump(data, file)
+
+def load_vectorstore(book_key):
+    vectorstore_path = os.path.join(vectorstore_dir, f'{book_key}.pkl')
+    if os.path.exists(vectorstore_path):
+        try:
+            with open(vectorstore_path, 'rb') as file:
+                return pickle.load(file)
+        except (EOFError, pickle.UnpicklingError):
+            print(f"Error loading vectorstore for book '{book_key}'. Recreating vectorstore.")
+            os.remove(vectorstore_path)
+    return None
+
 # Path to the EPUB file
 epub_file_path = 'books/book.epub'
 if not os.path.exists(epub_file_path):
@@ -104,6 +128,9 @@ if not os.path.exists(epub_file_path):
 
 print("Loading and indexing documents from EPUB...")
 title, cover_image, epub_content = read_epub(epub_file_path)
+
+# Generate a unique key for the book
+book_key = title.replace(" ", "_").lower()
 
 # Validate extracted data
 if title is None or cover_image is None or not epub_content:
@@ -116,17 +143,28 @@ docs_list = [Document(page_content=content) for content in epub_content]
 text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(chunk_size=250, chunk_overlap=0)
 doc_splits = text_splitter.split_documents(docs_list)
 
-# Setup and populate the database
-conn = setup_database()
-book_id = insert_book(conn, title, cover_image)
-insert_texts(conn, book_id, [doc.page_content for doc in doc_splits])
+# Check if vectorstore exists for this book
+vectorstore = load_vectorstore(book_key)
+if vectorstore is not None:
+    print(f"Loading vectorstore for book '{title}' from pickle file...")
+    docs = vectorstore['docs']
+    embeddings = vectorstore['embeddings']
+    vectorstore = Chroma(docs, collection_name="simple-chroma", embedding=embeddings)
+else:
+    # Setup and populate the database
+    conn = setup_database()
+    book_id = insert_book(conn, title, cover_image)
+    insert_texts(conn, book_id, [doc.page_content for doc in doc_splits])
 
-# Index documents in a vector database
-vectorstore = Chroma.from_documents(
-    documents=doc_splits,
-    collection_name="simple-chroma",
-    embedding=GPT4AllEmbeddings(),
-)
+    # Index documents in a vector database
+    vectorstore = Chroma.from_documents(
+        documents=doc_splits,
+        collection_name="simple-chroma",
+        embedding=GPT4AllEmbeddings(),
+    )
+    # Save the vectorstore data to a pickle file
+    save_vectorstore(doc_splits, GPT4AllEmbeddings(), book_key)
+
 retriever = vectorstore.as_retriever()
 
 # Setup LangChain prompt for answer generation
