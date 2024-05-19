@@ -106,9 +106,9 @@ def insert_texts(conn, book_id, texts):
     c.executemany('INSERT INTO texts (book_id, content) VALUES (?, ?)', [(book_id, text) for text in texts])
     conn.commit()
 
-def save_vectorstore(docs, embeddings, book_key):
+def save_vectorstore(doc_splits, embeddings, book_key):
     data = {
-        'docs': docs,
+        'doc_splits': doc_splits,
         'embeddings': embeddings
     }
     with open(os.path.join(vectorstore_dir, f'{book_key}.pkl'), 'wb') as file:
@@ -126,7 +126,7 @@ def load_vectorstore(book_key):
     return None
 
 # Path to the EPUB file
-epub_file_path = 'books/book2.epub'
+epub_file_path = 'books/book.epub'
 if not os.path.exists(epub_file_path):
     print("EPUB file not found.")
     exit(1)
@@ -158,13 +158,24 @@ else:
     print(f"Book '{title}' already exists in the database.")
 
 # Check if vectorstore exists for this book
-vectorstore = load_vectorstore(book_key)
-if vectorstore is not None:
+vectorstore_data = load_vectorstore(book_key)
+if vectorstore_data is not None:
     print(f"Loading vectorstore for book '{title}' from pickle file...")
-    docs = vectorstore['docs']
-    embeddings = vectorstore['embeddings']
-    vectorstore = Chroma(docs, collection_name="simple-chroma", embedding=embeddings)
+    doc_splits = vectorstore_data.get('doc_splits', [])
+    embeddings = vectorstore_data.get('embeddings', [])
+    if doc_splits and embeddings:
+        vectorstore = Chroma.from_documents(
+            documents=doc_splits,
+            collection_name="simple-chroma",
+            embedding=embeddings
+        )
+    else:
+        print(f"Missing data in pickle file for book '{title}'. Recreating vectorstore.")
+        vectorstore = None
 else:
+    vectorstore = None
+
+if vectorstore is None:
     # Index documents in a vector database
     vectorstore = Chroma.from_documents(
         documents=doc_splits,
@@ -191,15 +202,15 @@ while True:
     if question.lower() == 'exit':
         break
 
-    retrieved_docs = retriever.invoke(question)
+    retrieved_docs = retriever.invoke(question, num_results=5)  # Retrieve multiple documents
 
     if retrieved_docs:
-        # Retrieve the first relevant document
-        context = retrieved_docs[0].page_content
-        print(f"Retrieved document content: {context[:500]}...")  # Show a snippet of the document
+        # Combine contexts from multiple documents
+        combined_context = " ".join([doc.page_content for doc in retrieved_docs])
+        print(f"Combined context: {combined_context[:500]}...")  # Show a snippet of the combined context
 
-        # Generate an answer based on the retrieved document
-        answer = answer_generator.invoke({"context": context, "question": question})
+        # Generate an answer based on the combined context
+        answer = answer_generator.invoke({"context": combined_context, "question": question})
         print(f"Answer: {answer}")
     else:
         print("No relevant documents were found for your question.")
