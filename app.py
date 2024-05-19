@@ -90,6 +90,11 @@ def setup_database(db_path='books.db'):
     conn.commit()
     return conn
 
+def book_exists(conn, title):
+    c = conn.cursor()
+    c.execute('SELECT id FROM books WHERE title = ?', (title,))
+    return c.fetchone() is not None
+
 def insert_book(conn, title, cover_image):
     c = conn.cursor()
     c.execute('INSERT INTO books (title, cover_image) VALUES (?, ?)', (title, cover_image))
@@ -143,6 +148,15 @@ docs_list = [Document(page_content=content) for content in epub_content]
 text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(chunk_size=250, chunk_overlap=0)
 doc_splits = text_splitter.split_documents(docs_list)
 
+# Setup and populate the database
+conn = setup_database()
+
+if not book_exists(conn, title):
+    book_id = insert_book(conn, title, cover_image)
+    insert_texts(conn, book_id, [doc.page_content for doc in doc_splits])
+else:
+    print(f"Book '{title}' already exists in the database.")
+
 # Check if vectorstore exists for this book
 vectorstore = load_vectorstore(book_key)
 if vectorstore is not None:
@@ -151,11 +165,6 @@ if vectorstore is not None:
     embeddings = vectorstore['embeddings']
     vectorstore = Chroma(docs, collection_name="simple-chroma", embedding=embeddings)
 else:
-    # Setup and populate the database
-    conn = setup_database()
-    book_id = insert_book(conn, title, cover_image)
-    insert_texts(conn, book_id, [doc.page_content for doc in doc_splits])
-
     # Index documents in a vector database
     vectorstore = Chroma.from_documents(
         documents=doc_splits,
