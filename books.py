@@ -42,6 +42,20 @@ def load_vectorstore(book_key):
             os.remove(vectorstore_path)
     return None
 
+# Save vectorstore
+def save_vectorstore(doc_splits, embeddings, book_key):
+    data = {
+        'doc_splits': doc_splits,
+        'embeddings': embeddings
+    }
+    with open(os.path.join(vectorstore_dir, f'{book_key}.pkl'), 'wb') as file:
+        pickle.dump(data, file)
+
+# Sanitize collection name
+def sanitize_collection_name(name):
+    sanitized_name = ''.join(c if c.isalnum() or c in ['_', '-'] else '_' for c in name)
+    return sanitized_name[:63]  # Ensure it meets the length requirement
+
 # Route for the home page
 @app.route('/')
 def index():
@@ -96,7 +110,7 @@ def chat():
             return jsonify({'error': 'Book not found'}), 404
 
         title = book['title']
-        book_key = title.replace(" ", "_").lower()
+        book_key = sanitize_collection_name(title.replace(" ", "_").lower())
         print(f"Book title: {title}, book key: {book_key}")
 
         # Load vectorstore
@@ -119,7 +133,7 @@ def chat():
         # Create retriever and prompt template
         vectorstore = Chroma.from_documents(
             documents=doc_splits,
-            collection_name="simple-chroma",
+            collection_name=book_key,  # Use sanitized book key
             embedding=embeddings
         )
         retriever = vectorstore.as_retriever()
