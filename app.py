@@ -172,7 +172,7 @@ def load_vectorstore(book_key):
     return None
 
 # Path to the EPUB file
-epub_file_path = 'books/book1.epub'
+epub_file_path = 'books/Creativity-Inc.epub'
 if not os.path.exists(epub_file_path):
     print("EPUB file not found.")
     exit(1)
@@ -248,15 +248,16 @@ while True:
     if question.lower() == 'exit':
         break
 
-    retrieved_docs = retriever.invoke(question, num_results=5)  # Retrieve multiple documents
+    retrieved_docs = retriever.invoke(question, num_results=10)  # Retrieve multiple documents
 
     if retrieved_docs:
         # Combine contexts from multiple documents
         combined_context = " ".join([doc.page_content for doc in retrieved_docs])
-        print(f"Combined context: {combined_context[:500]}...")  # Show a snippet of the combined context
+        print(f"Combined context: {combined_context[:500]}... \n")  # Show a snippet of the combined context
+
 
         # Generate an answer based on the combined context
         answer = answer_generator.invoke({"context": combined_context, "question": question})
-        print(f"Answer: {answer}")
+        print(f"Answer: {answer} \n")
     else:
-        print("No relevant documents were found for your question.")
+        print("No relevant documents were found for your question. \n")
