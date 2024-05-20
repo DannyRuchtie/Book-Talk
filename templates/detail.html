@@ -4,12 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="view-transition" content="same-origin" />
-
     <title>{{ book.title }}</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/screen.css') }}"
     />
+    <script src="{{ url_for('static', filename='js/chat.js') }}" defer></script>
   </head>
   <body>
     <div class="container detail">
@@ -25,20 +25,15 @@
       </div>
 
       <div class="chat">
-        <div class="chat-bubble">
-          What is this story about and what is the main character?
-        </div>
-
-        <div class="chat-bubble">
-          What is this story about and what is the main character?
-        </div>
-
-        <div class="chat-bubble">
-          What is this story about and what is the main character?
-        </div>
-        <div class="chat-bubble">I'm doing well, thank you for asking.</div>
-
-        <input type="text" placeholder="Type your message here" autofocus />
+        <div id="chat-history"></div>
+        <input
+          type="text"
+          id="user-input"
+          placeholder="Type your message here"
+          autofocus
+        />
+        <input type="hidden" id="book-id" value="{{ book.id }}" />
+        <button id="send-button">Send</button>
       </div>
     </div>
   </body>

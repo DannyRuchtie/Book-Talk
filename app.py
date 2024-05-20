@@ -172,7 +172,7 @@ def load_vectorstore(book_key):
     return None
 
 # Path to the EPUB file
-epub_file_path = 'books/Creativity-Inc.epub'
+epub_file_path = 'books/jony-ive.epub'
 if not os.path.exists(epub_file_path):
     print("EPUB file not found.")
     exit(1)
