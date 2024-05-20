@@ -48,12 +48,13 @@ def save_vectorstore(doc_splits, embeddings, book_key):
         'doc_splits': doc_splits,
         'embeddings': embeddings
     }
-    with open(os.path.join(vectorstore_dir, f'{book_key}.pkl'), 'wb') as file:
+    with open(os.path.join(vectorstore_dir, f'{sanitize_collection_name(book_key)}.pkl'), 'wb') as file:
         pickle.dump(data, file)
 
 # Sanitize collection name
 def sanitize_collection_name(name):
     sanitized_name = ''.join(c if c.isalnum() or c in ['_', '-'] else '_' for c in name)
+    sanitized_name = sanitized_name.strip('_')
     return sanitized_name[:63]  # Ensure it meets the length requirement
 
 # Route for the home page
@@ -130,6 +131,11 @@ def chat():
 
         print(f"Loaded vectorstore for book key: {book_key}, doc_splits: {len(doc_splits)}, embeddings: {embeddings}")
 
+        # Validate embeddings
+        if not hasattr(embeddings, 'client'):
+            print("Embeddings object does not have 'client' attribute")
+            return jsonify({'error': 'Embeddings initialization error'}), 500
+
         # Create retriever and prompt template
         vectorstore = Chroma.from_documents(
             documents=doc_splits,
@@ -137,7 +143,7 @@ def chat():
             embedding=embeddings
         )
         retriever = vectorstore.as_retriever()
-        
+
         prompt_template = PromptTemplate(
             template="Try to use only the provided context and make it clear when your answer is not coming from the book: {context}, answer the following question: {question}",
             input_variables=["context", "question"]
@@ -147,7 +153,7 @@ def chat():
 
         # Retrieve and generate answer
         print(f"Invoking retriever with question: {question}")
-        retrieved_docs = retriever.invoke(question, num_results=10)
+        retrieved_docs = retriever.retrieve(question, num_results=10)
         print(f"Retrieved {len(retrieved_docs)} documents for question: {question}")
 
         if retrieved_docs:
