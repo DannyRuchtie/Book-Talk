@@ -30,6 +30,12 @@ def read_epub(file_path):
     title = None
     cover_image = None
     content = []
+    author = None
+    publisher = None
+    publication_date = None
+    language = None
+    isbn = None
+    subject = None
 
     # Extracting the title from metadata
     title_metadata = book.get_metadata('DC', 'title')
@@ -37,6 +43,31 @@ def read_epub(file_path):
         title = title_metadata[0][0]
     else:
         title = "Unknown Title"
+
+    # Extracting additional metadata
+    author_metadata = book.get_metadata('DC', 'creator')
+    if author_metadata:
+        author = author_metadata[0][0]
+    
+    publisher_metadata = book.get_metadata('DC', 'publisher')
+    if publisher_metadata:
+        publisher = publisher_metadata[0][0]
+
+    date_metadata = book.get_metadata('DC', 'date')
+    if date_metadata:
+        publication_date = date_metadata[0][0]
+
+    language_metadata = book.get_metadata('DC', 'language')
+    if language_metadata:
+        language = language_metadata[0][0]
+
+    identifier_metadata = book.get_metadata('DC', 'identifier')
+    if identifier_metadata:
+        isbn = identifier_metadata[0][0]
+
+    subject_metadata = book.get_metadata('DC', 'subject')
+    if subject_metadata:
+        subject = subject_metadata[0][0]
 
     # Try extracting the cover image using metadata
     cover_metadata = book.get_metadata('OPF', 'cover')
@@ -62,8 +93,14 @@ def read_epub(file_path):
     print(f"Title extracted: {title}")
     print(f"Cover image extracted: {'Yes' if cover_image else 'No'}")
     print(f"Number of documents extracted: {len(content)}")
+    print(f"Author extracted: {author}")
+    print(f"Publisher extracted: {publisher}")
+    print(f"Publication date extracted: {publication_date}")
+    print(f"Language extracted: {language}")
+    print(f"ISBN extracted: {isbn}")
+    print(f"Subject extracted: {subject}")
 
-    return title, cover_image, content
+    return title, cover_image, content, author, publisher, publication_date, language, isbn, subject
 
 # Setup SQLite database
 def setup_database(db_path='books.db'):
@@ -74,7 +111,13 @@ def setup_database(db_path='books.db'):
     CREATE TABLE IF NOT EXISTS books (
         id INTEGER PRIMARY KEY,
         title TEXT,
-        cover_image BLOB
+        cover_image BLOB,
+        author TEXT,
+        publisher TEXT,
+        publication_date TEXT,
+        language TEXT,
+        isbn TEXT,
+        subject TEXT
     )
     ''')
     
@@ -95,9 +138,12 @@ def book_exists(conn, title):
     c.execute('SELECT id FROM books WHERE title = ?', (title,))
     return c.fetchone() is not None
 
-def insert_book(conn, title, cover_image):
+def insert_book(conn, title, cover_image, author, publisher, publication_date, language, isbn, subject):
     c = conn.cursor()
-    c.execute('INSERT INTO books (title, cover_image) VALUES (?, ?)', (title, cover_image))
+    c.execute('''
+    INSERT INTO books (title, cover_image, author, publisher, publication_date, language, isbn, subject) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (title, cover_image, author, publisher, publication_date, language, isbn, subject))
     conn.commit()
     return c.lastrowid
 
@@ -132,7 +178,7 @@ if not os.path.exists(epub_file_path):
     exit(1)
 
 print("Loading and indexing documents from EPUB...")
-title, cover_image, epub_content = read_epub(epub_file_path)
+title, cover_image, epub_content, author, publisher, publication_date, language, isbn, subject = read_epub(epub_file_path)
 
 # Generate a unique key for the book
 book_key = title.replace(" ", "_").lower()
@@ -152,7 +198,7 @@ doc_splits = text_splitter.split_documents(docs_list)
 conn = setup_database()
 
 if not book_exists(conn, title):
-    book_id = insert_book(conn, title, cover_image)
+    book_id = insert_book(conn, title, cover_image, author, publisher, publication_date, language, isbn, subject)
     insert_texts(conn, book_id, [doc.page_content for doc in doc_splits])
 else:
     print(f"Book '{title}' already exists in the database.")
