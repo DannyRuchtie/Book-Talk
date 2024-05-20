@@ -5,16 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="view-transition" content="same-origin" />
 
-    <title>Title</title>
-    <link rel="stylesheet" href="css/screen.css" />
+    <title>{{ book.title }}</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/screen.css') }}"
+    />
   </head>
   <body>
     <div class="container detail">
       <div class="cover">
-        <a href="master.html" class="navigate-link">
+        <a href="/" class="navigate-link">
           <img
-            src="assets/1.jpg"
-            alt="title"
+            src="data:image/jpeg;base64,{{ book.cover_image }}"
+            alt="{{ book.title }}"
             class="cover cover-transition-small"
             view-transition-name="book-image"
           />

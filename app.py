@@ -126,7 +126,7 @@ def load_vectorstore(book_key):
     return None
 
 # Path to the EPUB file
-epub_file_path = 'books/book3.epub'
+epub_file_path = 'books/book1.epub'
 if not os.path.exists(epub_file_path):
     print("EPUB file not found.")
     exit(1)
@@ -189,7 +189,7 @@ retriever = vectorstore.as_retriever()
 
 # Setup LangChain prompt for answer generation
 prompt_template = PromptTemplate(
-    template="Using only the provided context: {context}, answer the following question: {question}",
+    template="Try to use only the provided context and make it clear when your answer is not comming from the book.: {context}, answer the following question: {question}",
     input_variables=["context", "question"],
 )
 

@@ -6,14 +6,8 @@
     <meta name="view-transition" content="same-origin" />
 
     <title>Books*</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/screen.css') }}"
-    />
-    <script
-      src="{{ url_for('static', filename='js/script.js') }}"
-      defer
-    ></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/screen.css') }}" />
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
   </head>
   <body>
     <div class="container master">
@@ -21,7 +15,7 @@
       <div class="grid">
         {% for book in books %}
         <div class="book">
-          <a href="detail.html" class="navigate-link">
+          <a href="{{ url_for('book_detail', book_id=book['id']) }}" class="navigate-link">
             <img
               src="data:image/jpeg;base64,{{ book.cover_image }}"
               alt="Book"
@@ -33,6 +27,4 @@
         </div>
         {% endfor %}
       </div>
-    </div>
-  </body>
-</html>
+    </div​⬤
