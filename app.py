@@ -89,17 +89,6 @@ def read_epub(file_path):
             soup = BeautifulSoup(item.get_body_content(), 'html.parser')
             content.append(soup.get_text())
 
-    # Debugging prints
-    print(f"Title extracted: {title}")
-    print(f"Cover image extracted: {'Yes' if cover_image else 'No'}")
-    print(f"Number of documents extracted: {len(content)}")
-    print(f"Author extracted: {author}")
-    print(f"Publisher extracted: {publisher}")
-    print(f"Publication date extracted: {publication_date}")
-    print(f"Language extracted: {language}")
-    print(f"ISBN extracted: {isbn}")
-    print(f"Subject extracted: {subject}")
-
     return title, cover_image, content, author, publisher, publication_date, language, isbn, subject
 
 # Setup SQLite database
@@ -172,7 +161,7 @@ def load_vectorstore(book_key):
     return None
 
 # Path to the EPUB file
-epub_file_path = 'books/jony-ive.epub'
+epub_file_path = 'books/book1.epub'
 if not os.path.exists(epub_file_path):
     print("EPUB file not found.")
     exit(1)
