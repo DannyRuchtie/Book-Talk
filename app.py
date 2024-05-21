@@ -24,13 +24,6 @@ vectorstore_dir = 'vectorstores'
 if not os.path.exists(vectorstore_dir):
     os.makedirs(vectorstore_dir)
 
-# Sanitize collection name
-def sanitize_collection_name(name):
-    sanitized_name = ''.join(c if c.isalnum() or c in ['_', '-'] else '_' for c in name)
-    sanitized_name = sanitized_name.strip('_')
-    return sanitized_name[:63]  # Ensure it meets the length requirement
-
-
 # Enhanced read_epub function
 def read_epub(file_path):
     book = epub.read_epub(file_path)
@@ -190,9 +183,8 @@ if not os.path.exists(epub_file_path):
 print("Loading and indexing documents from EPUB...")
 title, cover_image, epub_content, author, publisher, publication_date, language, isbn, subject = read_epub(epub_file_path)
 
-
 # Generate a unique key for the book
-book_key = sanitize_collection_name(title.replace(" ", "_").lower())
+book_key = title.replace(" ", "_").lower()
 
 # Validate extracted data
 if title is None or cover_image is None or not epub_content:
@@ -223,7 +215,7 @@ if vectorstore_data is not None:
     if doc_splits and embeddings:
         vectorstore = Chroma.from_documents(
             documents=doc_splits,
-            collection_name=sanitize_collection_name(book_key),  # Use sanitized book key
+            collection_name="simple-chroma",
             embedding=embeddings
         )
     else:
@@ -236,14 +228,11 @@ if vectorstore is None:
     # Index documents in a vector database
     vectorstore = Chroma.from_documents(
         documents=doc_splits,
-        collection_name=sanitize_collection_name(book_key),  # Use sanitized book key
+        collection_name="simple-chroma",
         embedding=GPT4AllEmbeddings(),
     )
     # Save the vectorstore data to a pickle file
-    save_vectorstore(doc_splits, GPT4AllEmbeddings(), sanitize_collection_name(book_key))
-
-
-
+    save_vectorstore(doc_splits, GPT4AllEmbeddings(), book_key)
 
 retriever = vectorstore.as_retriever()
 
@@ -268,3 +257,10 @@ while True:
         # Combine contexts from multiple documents
         combined_context = " ".join([doc.page_content for doc in retrieved_docs])
         print(f"Combined context: {combined_context[:500]}... \n")  # Show a snippet of the combined context
+
+
+        # Generate an answer based on the combined context
+        answer = answer_generator.invoke({"context": combined_context, "question": question})
+        print(f"Answer: {answer} \n")
+    else:
+        print("No relevant documents were found for your question. \n")
