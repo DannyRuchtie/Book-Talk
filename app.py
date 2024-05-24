@@ -92,18 +92,39 @@ def read_epub(file_path):
     return title, cover_image, content, author, publisher, publication_date, language, isbn, subject
 
 
-   # Debugging prints
-    print(f"Title extracted: {title}")
-    #print(f"Cover image extracted: {'Yes' if cover_image else 'No'}")
-    #print(f"Number of documents extracted: {len(content)}")
-    print(f"Author extracted: {author}")
-    print(f"Publisher extracted: {publisher}")
-    print(f"Publication date extracted: {publication_date}")
-    print(f"Language extracted: {language}")
-    print(f"ISBN extracted: {isbn}")
-    print(f"Subject extracted: {subject}")
+# Path to the EPUB file
+epub_file_path = 'books/Creative-Selection.epub'
+if not os.path.exists(epub_file_path):
+    print("EPUB file not found.")
+    exit(1)
 
+print("Loading and indexing documents from EPUB...")
+title, cover_image, epub_content, author, publisher, publication_date, language, isbn, subject = read_epub(epub_file_path)
 
+# Debugging prints
+print(f"Title extracted: {title}")
+#print(f"Cover image extracted: {'Yes' if cover_image else 'No'}")
+#print(f"Number of documents extracted: {len(epub_content)}")
+print(f"Author extracted: {author}")
+print(f"Publisher extracted: {publisher}")
+print(f"Publication date extracted: {publication_date}")
+print(f"Language extracted: {language}")
+print(f"ISBN extracted: {isbn}")
+print(f"Subject extracted: {subject}")
+
+# Generate a unique key for the book
+book_key = title.replace(" ", "_").lower()
+
+# Validate extracted data
+if title is None or cover_image is None or not epub_content:
+    print("Failed to extract title, cover image, or text content from EPUB.")
+    exit(1)
+
+docs_list = [Document(page_content=content) for content in epub_content]
+
+# Split text into manageable parts using a different method
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=250, chunk_overlap=0)
+doc_splits = text_splitter.split_documents(docs_list)
 
 # Setup SQLite database
 def setup_database(db_path='books.db'):
@@ -174,29 +195,6 @@ def load_vectorstore(book_key):
             os.remove(vectorstore_path)
     return None
 
-# Path to the EPUB file
-epub_file_path = 'books/jony-ive.epub'
-if not os.path.exists(epub_file_path):
-    print("EPUB file not found.")
-    exit(1)
-
-print("Loading and indexing documents from EPUB...")
-title, cover_image, epub_content, author, publisher, publication_date, language, isbn, subject = read_epub(epub_file_path)
-
-# Generate a unique key for the book
-book_key = title.replace(" ", "_").lower()
-
-# Validate extracted data
-if title is None or cover_image is None or not epub_content:
-    print("Failed to extract title, cover image, or text content from EPUB.")
-    exit(1)
-
-docs_list = [Document(page_content=content) for content in epub_content]
-
-# Split text into manageable parts
-text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(chunk_size=250, chunk_overlap=0)
-doc_splits = text_splitter.split_documents(docs_list)
-
 # Setup and populate the database
 conn = setup_database()
 
@@ -238,7 +236,7 @@ retriever = vectorstore.as_retriever()
 
 # Setup LangChain prompt for answer generation
 prompt_template = PromptTemplate(
-    template="Try to use only the provided context and make it clear when your answer is not comming from the book.: {context}, answer the following question: {question}",
+    template="Try to use only the provided context and make it clear when your answer is not coming from the book: {context}, answer the following question: {question}",
     input_variables=["context", "question"],
 )
 
@@ -255,12 +253,11 @@ while True:
 
     if retrieved_docs:
         # Combine contexts from multiple documents
-        combined_context = " ".join([doc.page_content for doc in retrieved_docs])
-        print(f"Combined context: {combined_context[:500]}... \n")  # Show a snippet of the combined context
-
-
-        # Generate an answer based on the combined context
-        answer = answer_generator.invoke({"context": combined_context, "question": question})
-        print(f"Answer: {answer} \n")
-    else:
-        print("No relevant documents were found for your question. \n")
+        combined_context = "".join([doc.page_content for doc in retrieved_docs])
+    print(f"Combined context: {combined_context[:500]}… \n")  #Show a snippet of the combined context
+          
+         # Generate an answer based on the combined context
+    answer = answer_generator.invoke({"context": combined_context, "question": question})
+    print(f"Answer: {answer} \n")
+else:
+    print("No relevant documents were found for your question. \n")

@@ -75,6 +75,13 @@ h1 {
   font-size: 13px;
   font-weight: 400;
   margin: 0.5rem 0;
+  max-height: 2rem;
+  min-height: 2rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: horizontal;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* detail view */
@@ -84,7 +91,7 @@ h1 {
   grid-template-columns: 1fr 2fr; /* Two columns: one for cover, two for chat */
   gap: 8rem; /* Space between the columns */
   justify-content: center;
-  align-content: center;
+  align-content: end;
   place-items: center;
   width: 100%;
   max-width: 60rem;
@@ -96,8 +103,10 @@ h1 {
 
 .detail .cover img {
   border-radius: 0.5rem;
+  max-width: 20rem;
   width: 100%;
   height: auto;
+  max-height: auto;
   object-fit: cover;
   padding: 0;
   margin: 0;
