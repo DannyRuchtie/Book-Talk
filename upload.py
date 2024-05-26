@@ -99,7 +99,7 @@ def process_epub(file_path):
 
     book_key = title.replace(" ", "_").lower()
     docs_list = [Document(page_content=content) for content in epub_content]
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=250, chunk_overlap=0)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=250, chunk_overlap=30)
     doc_splits = text_splitter.split_documents(docs_list)
 
     conn = get_db_connection()

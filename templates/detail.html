@@ -19,14 +19,12 @@
             src="data:image/jpeg;base64,{{ book.cover_image }}"
             alt="{{ book.title }}"
             class="cover cover-transition-small"
-            view-transition-name="book-image"
+            view-transition-name="book-image-{{ book.id }}"
           />
         </a>
       </div>
-
       <div class="chat">
         <div id="chat-history"></div>
-
         <div class="input-group">
           <input
             type="text"

@@ -45,7 +45,7 @@ h1 {
 
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 2rem;
   margin: 1rem auto;
   align-items: end;
@@ -103,7 +103,7 @@ h1 {
 
 .detail .cover img {
   border-radius: 0.5rem;
-  max-width: 20rem;
+  max-width: 40rem;
   width: 100%;
   height: auto;
   max-height: auto;
@@ -201,6 +201,253 @@ h1 {
 */
 
 /* Transistion */
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateY(-10rem);
+  }
+  to {
+    transform: translateY(0rem);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.9);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.cover-transition-small,
+.cover-transition-large {
+  view-transition-name: cover;
+  animation: scale-in 0.6s cubic-bezier(0.43, 0, 0.17, 1);
+}
+
+::view-transition-old(card) ::view-transition-new(card) {
+  mix-blend-mode: normal;
+  animation: fade-out 0.3s ease-in-out;
+}
+
+html,
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica,
+    Arial, sans-serif;
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  transition: opacity 0.5s ease;
+}
+
+body[fade-out] {
+  opacity: 0;
+}
+
+a {
+  text-decoration: none;
+}
+
+.container {
+  width: 100%;
+  max-width: 90vw;
+  margin: 2rem 0;
+}
+
+h1 {
+  color: #000;
+  font-family: "New York Extra Large", -apple-system, BlinkMacSystemFont,
+    "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 3rem;
+  font-weight: 600;
+  letter-spacing: -0.35px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 2rem;
+  margin: 1rem auto;
+  align-items: end;
+}
+
+.container .book img {
+  width: 100%;
+  max-width: 25rem;
+  height: auto;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  contain: paint;
+  background-color: #cecece;
+  box-shadow: 0px 4.7px 3.6px rgba(0, 0, 0, 0.024),
+    0px 13px 10px rgba(0, 0, 0, 0.035), 0px 21.4px 24.1px rgba(0, 0, 0, 0.046),
+    0px 94px 80px rgba(0, 0, 0, 0.07);
+}
+
+.container .book img:hover {
+  box-shadow: 0px 4.7px 3.6px rgba(0, 0, 0, 0.034),
+    0px 13px 10px rgba(0, 0, 0, 0.035), 0px 21.4px 24.1px rgba(0, 0, 0, 0.16),
+    0px 94px 80px rgba(0, 0, 0, 0.07);
+}
+
+.book h2 {
+  color: #848488;
+  font-size: 13px;
+  font-weight: 400;
+  margin: 0.5rem 0;
+  max-height: 2rem;
+  min-height: 2rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: horizontal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* detail view */
+
+.container.detail {
+  display: grid;
+  grid-template-columns: 1fr 2fr; /* Two columns: one for cover, two for chat */
+  gap: 8rem; /* Space between the columns */
+  justify-content: center;
+  align-content: end;
+  place-items: center;
+  width: 100%;
+  max-width: 60rem;
+}
+
+.detail .cover {
+  width: 25rem;
+}
+
+.detail .cover img {
+  border-radius: 0.5rem;
+  max-width: 40rem;
+  width: 100%;
+  height: auto;
+  max-height: auto;
+  object-fit: cover;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  box-shadow: 0px 5.9px 2.2px rgba(0, 0, 0, 0.02),
+    0px 14.1px 5.3px rgba(0, 0, 0, 0.028), 0px 26.5px 10px rgba(0, 0, 0, 0.035),
+    0px 47.4px 17.9px rgba(0, 0, 0, 0.042),
+    0px 88.6px 33.4px rgba(0, 0, 0, 0.05), 0px 212px 80px rgba(0, 0, 0, 0.07);
+}
+
+.detail .chat {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  height: 100%;
+}
+
+.chat-bubble {
+  line-height: 1.4;
+  padding: 1rem 1.25rem;
+  background-color: #f1f1f1;
+  border-radius: 1.5rem;
+  margin: 0.5rem 0 0.5rem 3rem;
+}
+
+.input-group {
+  height: 3rem;
+  display: grid;
+  grid-template-columns: 1fr 2rem;
+  gap: 0.5rem;
+  justify-content: center;
+  align-content: center;
+}
+
+.chat input {
+  height: 1rem;
+  line-height: 1.4;
+  padding: 0.75rem 1.25rem;
+  border-radius: 1.5rem;
+  border: 1px solid #cecece;
+}
+
+.chat input:focus {
+  outline: none;
+}
+
+.chat button {
+  background-color: transparent;
+  width: 2rem;
+  height: 2rem;
+  color: inherit;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
+  justify-self: center;
+  align-self: center;
+}
+
+/* 
+@media only screen and (max-width: 600px) {
+  html,
+  body {
+    margin: 0;
+  }
+  .container.detail {
+    grid-template-columns: 1fr; 
+  }
+
+  .detail .cover {
+    width: 100%;
+    max-width: 8rem;
+  }
+
+  .detail .cover img {
+    border-radius: 0.25rem;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    box-shadow: 0px 5.9px 2.2px rgba(0, 0, 0, 0.02),
+      0px 14.1px 5.3px rgba(0, 0, 0, 0.028),
+      0px 26.5px 10px rgba(0, 0, 0, 0.035),
+      0px 47.4px 17.9px rgba(0, 0, 0, 0.042),
+      0px 88.6px 33.4px rgba(0, 0, 0, 0.05), 0px 212px 80px rgba(0, 0, 0, 0.07);
+  }
+}
+*/
+
+/* Transistion */
+
+.cover-transition-small,
+.cover-transition-large {
+  view-transition-name: cover;
+}
 
 @keyframes fade-out {
   from {
