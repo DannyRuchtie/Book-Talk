@@ -1,5 +1,3 @@
-# chat.py
-
 import os
 import pickle
 import warnings
@@ -19,8 +17,8 @@ warnings.filterwarnings("ignore", category=FutureWarning, module="ebooklib")
 
 chat_bp = Blueprint('chat_bp', __name__)
 local_llm = 'llama3'
-VECTORSTORE_DIR = 'vectorstores'
 
+VECTORSTORE_DIR = 'vectorstores'
 if not os.path.exists(VECTORSTORE_DIR):
     os.makedirs(VECTORSTORE_DIR)
 
@@ -89,48 +87,38 @@ def chat():
             return jsonify({'error': 'Embeddings initialization error'}), 500
 
         # Create retriever and prompt template
-        try:
-            vectorstore = Chroma.from_documents(
-                documents=doc_splits,
-                collection_name=book_key,  # Use sanitized book key
-                embedding=embeddings
-            )
-            retriever = vectorstore.as_retriever()
-            print(f"Retriever created successfully for book key: {book_key}")
+        vectorstore = Chroma.from_documents(
+            documents=doc_splits,
+            collection_name=book_key,  # Use sanitized book key
+            embedding=embeddings
+        )
+        retriever = vectorstore.as_retriever()
 
-            prompt_template = PromptTemplate(
-                template="Try to use only the provided context and make it clear when your answer is not coming from the book: {context}, answer the following question: {question}",
-                input_variables=["context", "question"]
-            )
-            llm = ChatOllama(model=local_llm)
-            answer_generator = prompt_template | llm | StrOutputParser()
-            print(f"Answer generator created successfully")
-        except Exception as e:
-            print(f"Error setting up retriever or answer generator: {e}")
-            return jsonify({'error': 'Error setting up retriever or answer generator', 'details': str(e)}), 500
+        prompt_template = PromptTemplate(
+            template="Try to use only the provided context and make it clear when your answer is not coming from the book: {context}, answer the following question: {question}",
+            input_variables=["context", "question"]
+        )
+        llm = ChatOllama(model=local_llm)
+        answer_generator = prompt_template | llm | StrOutputParser()
 
         # Retrieve and generate answer
         print(f"Invoking retriever with question: {question}")
-        try:
-            retrieved_docs = retriever.retrieve(question, num_results=10)
-            print(f"Retrieved {len(retrieved_docs)} documents for question: {question}")
+        retrieved_docs = retriever.retrieve(question, num_results=10)
+        print(f"Retrieved {len(retrieved_docs)} documents for question: {question}")
 
-            if retrieved_docs:
-                combined_context = " ".join([doc.page_content for doc in retrieved_docs])
-                print(f"Combined context for answer generation: {combined_context[:500]}...")  # Show a snippet for debugging
-                try:
-                    answer = answer_generator.invoke({"context": combined_context, "question": question})
-                    print(f"Generated answer: {answer}")
-                    return jsonify({'answer': answer})
-                except Exception as e:
-                    print(f"Error generating answer: {e}")
-                    return jsonify({'error': 'Error generating answer', 'details': str(e)}), 500
-            else:
-                print("No relevant documents found")
-                return jsonify({'error': 'No relevant documents found'}), 404
-        except Exception as e:
-            print(f"Error during document retrieval: {e}")
-            return jsonify({'error': 'Error during document retrieval', 'details': str(e)}), 500
+        if retrieved_docs:
+            combined_context = " ".join([doc.page_content for doc in retrieved_docs])
+            print(f"Combined context for answer generation: {combined_context[:500]}...")  # Show a snippet for debugging
+            try:
+                answer = answer_generator.invoke({"context": combined_context, "question": question})
+                print(f"Generated answer: {answer}")
+                return jsonify({'answer': answer})
+            except Exception as e:
+                print(f"Error generating answer: {e}")
+                return jsonify({'error': 'Error generating answer', 'details': str(e)}), 500
+        else:
+            print("No relevant documents found")
+            return jsonify({'error': 'No relevant documents found'}), 404
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({'error': 'An error occurred', 'details': str(e)}), 500
@@ -180,48 +168,38 @@ def test_chat():
             return jsonify({'error': 'Embeddings initialization error'}), 500
 
         # Create retriever and prompt template
-        try:
-            vectorstore = Chroma.from_documents(
-                documents=doc_splits,
-                collection_name=book_key,  # Use sanitized book key
-                embedding=embeddings
-            )
-            retriever = vectorstore.as_retriever()
-            print(f"Retriever created successfully for book key: {book_key}")
+        vectorstore = Chroma.from_documents(
+            documents=doc_splits,
+            collection_name=book_key,  # Use sanitized book key
+            embedding=embeddings
+        )
+        retriever = vectorstore.as_retriever()
 
-            prompt_template = PromptTemplate(
-                template="Try to use only the provided context and make it clear when your answer is not coming from the book: {context}, answer the following question: {question}",
-                input_variables=["context", "question"]
-            )
-            llm = ChatOllama(model=local_llm)
-            answer_generator = prompt_template | llm | StrOutputParser()
-            print(f"Answer generator created successfully")
-        except Exception as e:
-            print(f"Error setting up retriever or answer generator: {e}")
-            return jsonify({'error': 'Error setting up retriever or answer generator', 'details': str(e)}), 500
+        prompt_template = PromptTemplate(
+            template="Try to use only the provided context and make it clear when your answer is not coming from the book: {context}, answer the following question: {question}",
+            input_variables=["context", "question"]
+        )
+        llm = ChatOllama(model=local_llm)
+        answer_generator = prompt_template | llm | StrOutputParser()
 
         # Retrieve and generate answer
         print(f"Invoking retriever with question: {question}")
-        try:
-            retrieved_docs = retriever.retrieve(question, num_results=10)
-            print(f"Retrieved {len(retrieved_docs)} documents for question: {question}")
+        retrieved_docs = retriever.retrieve(question, num_results=10)
+        print(f"Retrieved {len(retrieved_docs)} documents for question: {question}")
 
-            if retrieved_docs:
-                combined_context = " ".join([doc.page_content for doc in retrieved_docs])
-                print(f"Combined context for answer generation: {combined_context[:500]}...")  # Show a snippet for debugging
-                try:
-                    answer = answer_generator.invoke({"context": combined_context, "question": question})
-                    print(f"Generated answer: {answer}")
-                    return jsonify({'answer': answer})
-                except Exception as e:
-                    print(f"Error generating answer: {e}")
-                    return jsonify({'error': 'Error generating answer', 'details': str(e)}), 500
-            else:
-                print("No relevant documents found")
-                return jsonify({'error': 'No relevant documents found'}), 404
-        except Exception as e:
-            print(f"Error during document retrieval: {e}")
-            return jsonify({'error': 'Error during document retrieval', 'details': str(e)}), 500
+        if retrieved_docs:
+            combined_context = " ".join([doc.page_content for doc in retrieved_docs])
+            print(f"Combined context for answer generation: {combined_context[:500]}...")  # Show a snippet for debugging
+            try:
+                answer = answer_generator.invoke({"context": combined_context, "question": question})
+                print(f"Generated answer: {answer}")
+                return jsonify({'answer': answer})
+            except Exception as e:
+                print(f"Error generating answer: {e}")
+                return jsonify({'error': 'Error generating answer', 'details': str(e)}), 500
+        else:
+            print("No relevant documents found")
+            return jsonify({'error': 'No relevant documents found'}), 404
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({'error': 'An error occurred', 'details': str(e)}), 500
